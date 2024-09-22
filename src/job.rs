@@ -1,8 +1,7 @@
 use std::fmt::{Display, Formatter};
-use std::time::Duration;
 use std::error::Error;
 use std::ops::Add;
-use chrono::{Utc, DateTime};
+use chrono::{Utc, DateTime, Duration};
 
 #[derive(Debug, Clone)]
 pub struct Job {
@@ -101,4 +100,24 @@ impl Job {
         Utc::now() >= self.expire
     }
 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::{Duration as CDuration, TimeDelta};
+
+    #[test]
+    fn create_job_with_valid_parameters() {
+        let name = "test-job-valid-parameters";
+        let now = Utc::now();
+        let expire = now.add(TimeDelta::days(1));
+        let interval = CDuration::seconds(15);
+        let message = "test-job-message";
+
+        let result = Job::new(name, expire, interval, message);
+
+        assert!(result.is_ok());
+
+    }
 }
