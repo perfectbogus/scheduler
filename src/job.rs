@@ -123,4 +123,30 @@ mod tests {
         assert_eq!(job.interval(), interval);
         assert_eq!(job.message(), message);
     }
+
+    #[test]
+    fn error_result_with_invalid_expire() {
+        let name = "test-job-invalid-expire";
+        let expire_in_past = Utc::now() - CDuration::hours(1);
+        let interval = CDuration::seconds(15);
+        let message = "test job invalid expire";
+
+        let result = Job::new(name, expire_in_past, interval, message);
+        assert!(result.is_err());
+        let error = result.unwrap_err();
+        assert!(matches!(error, JobError::ExpirationInPast(..)))
+    }
+
+    #[test]
+    fn error_result_with_invalid_interval() {
+        let name = "test-job-invalid-interval";
+        let expire = Utc::now() + CDuration::hours(1);
+        let zero_interval = CDuration::seconds(0);
+        let message = "test job invalid interval";
+
+        let result = Job::new(name, expire, zero_interval, message);
+        assert!(result.is_err());
+        let error = result.unwrap_err();
+        assert!(matches!(error, JobError::ZeroInterval))
+    }
 }
