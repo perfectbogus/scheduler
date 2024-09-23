@@ -108,7 +108,7 @@ mod tests {
     use chrono::{Duration as CDuration, TimeDelta};
 
     #[test]
-    fn create_job_with_valid_parameters() {
+    fn when_valid_parameters_create_job() {
         let name = "test-job-valid-parameters";
         let expire = Utc::now() + CDuration::hours(1);
         let interval = CDuration::seconds(15);
@@ -125,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn error_result_with_invalid_expire() {
+    fn when_invalid_expire_get_job_error() {
         let name = "test-job-invalid-expire";
         let expire_in_past = Utc::now() - CDuration::hours(1);
         let interval = CDuration::seconds(15);
@@ -138,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    fn error_result_with_invalid_interval() {
+    fn when_invalid_zero_interval_get_job_error() {
         let name = "test-job-invalid-interval";
         let expire = Utc::now() + CDuration::hours(1);
         let zero_interval = CDuration::seconds(0);
@@ -148,5 +148,30 @@ mod tests {
         assert!(result.is_err());
         let error = result.unwrap_err();
         assert!(matches!(error, JobError::ZeroInterval))
+    }
+
+    #[test]
+    fn when_job_executed_validated_is_due() {
+
+    }
+
+    #[test]
+    fn when_job_executed_validate_execution() {
+
+    }
+
+    #[test]
+    fn when_update_expiration_validate() {
+
+    }
+
+    #[test]
+    fn when_job_executed_check_next_run_time() {
+
+    }
+
+    #[test]
+    fn when_job_expire_remove_it() {
+        
     }
 }
