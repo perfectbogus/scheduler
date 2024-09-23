@@ -110,14 +110,17 @@ mod tests {
     #[test]
     fn create_job_with_valid_parameters() {
         let name = "test-job-valid-parameters";
-        let now = Utc::now();
-        let expire = now.add(TimeDelta::days(1));
+        let expire = Utc::now() + CDuration::hours(1);
         let interval = CDuration::seconds(15);
         let message = "test-job-message";
 
         let result = Job::new(name, expire, interval, message);
-
         assert!(result.is_ok());
 
+        let job = result.unwrap();
+        assert_eq!(job.name(), name);
+        assert_eq!(job.expire(), expire);
+        assert_eq!(job.interval(), interval);
+        assert_eq!(job.message(), message);
     }
 }
