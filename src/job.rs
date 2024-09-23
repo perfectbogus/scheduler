@@ -9,7 +9,7 @@ pub struct Job {
     expire: DateTime<Utc>,
     interval: Duration,
     message: String,
-    last_time_executed: DateTime<Utc>
+    last_time_executed: Option<DateTime<Utc>>
 }
 
 #[derive(Debug, Clone)]
@@ -45,7 +45,7 @@ impl Job {
                 expire,
                 interval,
                 message: message.to_string(),
-                last_time_executed: Utc::now(),
+                last_time_executed: None,
             })
         }
     }
@@ -68,7 +68,7 @@ impl Job {
 
     pub fn execute(&mut self) {
         println!("{} {}",Utc::now(), self.message);
-        self.last_time_executed = Utc::now();
+        self.last_time_executed = Some(Utc::now());
     }
 
     fn datetime_is_in_the_past(datetime: DateTime<Utc>) -> bool {
@@ -89,11 +89,20 @@ impl Job {
     }
 
     pub fn is_due(&self) -> bool {
-        Utc::now() >= self.last_time_executed.add(self.interval)
+        match self.last_time_executed {
+            None => { false }
+            Some(last_time) => {
+                Utc::now() >= last_time.add(self.interval)
+            }
+        }
     }
 
-    pub fn next_run_time(&self) -> DateTime<Utc> {
-        self.last_time_executed.add(self.interval)
+    pub fn last_time_executed(&self) -> Option<DateTime<Utc>> {
+        self.last_time_executed
+    }
+
+    pub fn next_run_time(&mut self) {
+        self.last_time_executed = Some(Utc::now().add(self.interval))
     }
 
     pub fn should_remove(&self) -> bool {
@@ -152,7 +161,15 @@ mod tests {
 
     #[test]
     fn when_job_executed_validated_is_due() {
+        let name = "test-job-valid-parameters";
+        let expire = Utc::now() + CDuration::minutes(1);
+        let interval = CDuration::seconds(10);
+        let message = "test-job-message";
 
+        let result = Job::new(name, expire, interval, message);
+        let mut job = result.unwrap();
+        job.execute();
+        assert!(job.is_due());
     }
 
     #[test]
@@ -172,6 +189,6 @@ mod tests {
 
     #[test]
     fn when_job_expire_remove_it() {
-        
+
     }
 }
