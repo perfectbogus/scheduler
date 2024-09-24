@@ -90,9 +90,9 @@ impl Job {
 
     pub fn is_due(&self) -> bool {
         match self.last_time_executed {
-            None => { false }
+            None => { true }
             Some(last_time) => {
-                Utc::now() >= last_time.add(self.interval)
+                Utc::now() >= last_time + self.interval
             }
         }
     }
@@ -168,18 +168,58 @@ mod tests {
 
         let result = Job::new(name, expire, interval, message);
         let mut job = result.unwrap();
-        job.execute();
+
         assert!(job.is_due());
+        job.execute();
+        assert!(!job.is_due());  // Job is not due immediately after execution
+        // Simulate passage of time
+        std::thread::sleep(std::time::Duration::from_secs(11));
+        assert!(job.is_due());  // Now the job should be due again
     }
 
     #[test]
     fn when_job_executed_validate_execution() {
+        let name = "test-job-valid-parameters";
+        let expire = Utc::now() + CDuration::minutes(1);
+        let interval = CDuration::seconds(10);
+        let message = "test-job-message";
 
+        let result = Job::new(name, expire, interval, message);
+        let mut job = result.unwrap();
+        assert!(job.last_time_executed().is_none());
+        job.execute();
+        assert!(job.last_time_executed().is_some());
     }
 
     #[test]
     fn when_update_expiration_validate() {
+        let name = "test-job-valid-parameters";
+        let expire = Utc::now() + CDuration::minutes(1);
+        let interval = CDuration::seconds(10);
+        let message = "test-job-message";
 
+        let result = Job::new(name, expire, interval, message);
+        let mut job = result.unwrap();
+
+        let expire_new = Utc::now() + CDuration::minutes(10);
+        let result = job.update_expiration(expire_new);
+        assert!(result.is_ok())
+    }
+
+    #[test]
+    fn when_update_expiration_is_invalid() {
+        let name = "test-job-valid-parameters";
+        let expire = Utc::now() + CDuration::minutes(1);
+        let interval = CDuration::seconds(10);
+        let message = "test-job-message";
+
+        let result = Job::new(name, expire, interval, message);
+        let mut job = result.unwrap();
+
+        let expire_new = Utc::now() - CDuration::minutes(10);
+        let result = job.update_expiration(expire_new);
+        assert!(result.is_err());
+        assert!(matches!(result.unwrap_err(), JobError::ExpirationInPast(_)))
     }
 
     #[test]
