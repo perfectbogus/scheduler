@@ -9,7 +9,7 @@ pub struct Job {
     expire: DateTime<Utc>,
     interval: Duration,
     message: String,
-    last_time_executed: Option<DateTime<Utc>>
+    most_recent_run: Option<DateTime<Utc>>
 }
 
 #[derive(Debug, Clone)]
@@ -45,7 +45,7 @@ impl Job {
                 expire,
                 interval,
                 message: message.to_string(),
-                last_time_executed: None,
+                most_recent_run: None,
             })
         }
     }
@@ -68,7 +68,7 @@ impl Job {
 
     pub fn execute(&mut self) {
         println!("{} {}",Utc::now(), self.message);
-        self.last_time_executed = Some(Utc::now());
+        self.most_recent_run = Some(Utc::now());
     }
 
     fn datetime_is_in_the_past(datetime: DateTime<Utc>) -> bool {
@@ -89,7 +89,7 @@ impl Job {
     }
 
     pub fn is_due(&self) -> bool {
-        match self.last_time_executed {
+        match self.most_recent_run {
             None => { true }
             Some(last_time) => {
                 Utc::now() >= last_time + self.interval
@@ -97,12 +97,12 @@ impl Job {
         }
     }
 
-    pub fn last_time_executed(&self) -> Option<DateTime<Utc>> {
-        self.last_time_executed
+    pub fn most_recent_run(&self) -> Option<DateTime<Utc>> {
+        self.most_recent_run
     }
 
     pub fn next_run_time(&mut self) {
-        self.last_time_executed = Some(Utc::now().add(self.interval))
+        self.most_recent_run = Some(Utc::now().add(self.interval))
     }
 
     pub fn should_remove(&self) -> bool {
@@ -186,9 +186,9 @@ mod tests {
 
         let result = Job::new(name, expire, interval, message);
         let mut job = result.unwrap();
-        assert!(job.last_time_executed().is_none());
+        assert!(job.most_recent_run().is_none());
         job.execute();
-        assert!(job.last_time_executed().is_some());
+        assert!(job.most_recent_run().is_some());
     }
 
     #[test]
@@ -221,14 +221,5 @@ mod tests {
         assert!(result.is_err());
         assert!(matches!(result.unwrap_err(), JobError::ExpirationInPast(_)))
     }
-
-    #[test]
-    fn when_job_executed_check_next_run_time() {
-
-    }
-
-    #[test]
-    fn when_job_expire_remove_it() {
-
-    }
+    
 }
