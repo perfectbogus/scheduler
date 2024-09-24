@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use crate::job::Job;
+use crate::scheduler::SchedulerError::JobAlreadyExists;
 
 pub struct Scheduler {
     jobs: HashMap<String, Job>,
@@ -30,8 +31,13 @@ impl Scheduler {
         }
     }
 
-    pub fn add_job(&mut self, job: Job) -> Result<(), Error> {
-        unimplemented!("add_job")
+    pub fn add_job(&mut self, job: Job) -> Result<(), SchedulerError> {
+        if self.jobs.contains_key(job.name()) {
+            Err(JobAlreadyExists(job))
+        } else {
+            self.jobs.insert(job.name().to_string(), job);
+            Ok(())
+        }
     }
 
     pub fn remove_job() {
