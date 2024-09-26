@@ -51,7 +51,7 @@ impl Scheduler {
         if !self.jobs.contains_key(job_name) {
             Err(SchedulerError::JobDoesntExists(job_name.to_string()))
         } else {
-            Ok(self.jobs.remove(job_name).unwrap())
+            Ok(self.jobs.remove(job_name).expect("Unable to remove Job"))
         }
     }
 
